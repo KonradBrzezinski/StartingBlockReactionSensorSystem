@@ -39,3 +39,22 @@ reakcji zależnie od charakterystyki (jedna jest dłużej mierzona niż inna itp
 Chuj go wi co tu pisać, nic nie ma na necie, wszystko jest tajne bo są głównym dostawcą dla WorldAthletics, wiadomo że mają jakiś filtr który zamienia odczyt z czujnika
 nacisku na kilka składowych częstotliwości i jakaś jedna wykrywa dokładnie drgnięcia i inne tego typu rzeczy (katalog strona 6) , można jedynie analizować wygląd bloku startowego ze zdjęc,
 głośniki wbudowane w blok z przodu, wprost jest podane że czujnik nacisku z dokładnością do 0.001s, blok 16.5kg xd,
+
+==========================================================================================================================================================
+
+SIS - Start Information System
+1PPS - One Pulse Per Second
+
+==========================================================================================================================================================
+
+LITERATURA
+
+SYNCHRONIZACJA CZASOWA
+DO PRZECZYTANIA
+
+https://dl.acm.org/doi/pdf/10.1145/1644038.1644061
+https://www.sciencedirect.com/science/article/pii/S1570870505000144?casa_token=Wfv_Hj8zDcEAAAAA:ewdzwJf3Hvr6m26r0v8rAJM3oH2iUmMrKiUqtCq438cJ-fGWCg5hP9VCr0okIy5N8N89XFWC
+https://www.frontiersin.org/journals/built-environment/articles/10.3389/fbuil.2018.00082/full
+https://www.mdpi.com/1424-8220/25/7/1961
+https://www.sciencedirect.com/science/article/pii/S1570870524003603?casa_token=L0pb-eknqJkAAAAA:t4E3IZCpJj7jhTW_Y8a7k_rlkcaL4NhPp15n6BFq0Q0fDHEl4GjXpOlwZCwB7VbCPbi0p1lE
+https://www.nature.com/articles/s41598-022-11104-z
