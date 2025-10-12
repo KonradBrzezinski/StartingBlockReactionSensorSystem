@@ -58,3 +58,55 @@ https://www.frontiersin.org/journals/built-environment/articles/10.3389/fbuil.20
 https://www.mdpi.com/1424-8220/25/7/1961
 https://www.sciencedirect.com/science/article/pii/S1570870524003603?casa_token=L0pb-eknqJkAAAAA:t4E3IZCpJj7jhTW_Y8a7k_rlkcaL4NhPp15n6BFq0Q0fDHEl4GjXpOlwZCwB7VbCPbi0p1lE
 https://www.nature.com/articles/s41598-022-11104-z
+
+https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=5453878
+
+Synchronizacja czasowa automatyczna
+
+Bardzo potrzebne gdy ma się sieć rozproszonych czujników, żeby wszystkie mierzyły w tym samym czasie/momencie, W przypadku tego projektu synchronizacja czasowa jest o tyle
+ważna, aby każdy czujnik dostał informację o starcie w tym samym czasie, a następnie od tego samego momentu rozpoczął pomiar reakcji. Synchronizacja jest kluczowa dla
+WSN czy też IoT, Umożliwia to poprawne działanie funkcji np. agregacji danych lub zarządzania energią (usypianie urządzenia w odpowiednim czasie), główne źródła
+błędów w bezprzewodowej synchronizacji można podzielić na trzy kategorie: 1. Dryf zegara 2. Opóźnienia transmisji 3. 
+
+
+
+
+
+
+
+==========================================================================================================================================================
+ROZDZIAŁ 4 ZAŁOŻENIA PROJEKTOWE
+
+Wymagania funkcjonalne
+
+Dokładność pomiaru do 1ms, jeden czujnik treningowy, pomiar startu -0.5s - +1.0s, Załączenie i wyłączenie akcelerometru z poziomu komputera połączonego z odbiornikiem,
+którki sygnał dźwiękowy podczas startu, jak i podczas wykrycia wczesnej reakcji, komunikacja bezprzewodowa czujnik - odbiornik, przesył danych o reakcji z czujnika do
+odbiornika, wyświetlenie danych za pomocą skryptu na komputerze do którego podłączony jest odbiornik, ew. zapalenie diody zielonej gdy reakcja jest ok, czerwonej gdy nie ok
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
