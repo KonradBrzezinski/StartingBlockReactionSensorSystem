@@ -1,151 +1,189 @@
-#include "nrf24l01.h"
+#include "includes/nrf24l01.h"
 
-void csn_select(void){
-    gpio_put(SPI_CSN_PIN, 0);
-    sleep_us(3);
+void cs_select(NRF24_t *device){
+    gpio_put(device->cs_pin, 0);
+    sleep_us(10);
 }
 
-void csn_deselect(void){
-    sleep_us(3);
-    gpio_put(SPI_CSN_PIN, 1);
+void cs_deselect(NRF24_t *device){
+    sleep_us(10);
+    gpio_put(device->cs_pin, 1);
 }
 
-/*
-Writing register to nrf24 module
-*/
-void nrf24_write_reg(spi_inst_t *spi, uint8_t reg, uint8_t value){
+void ce_enable(NRF24_t *device){
+    gpio_put(device->ce_pin, 1);
+    sleep_us(10);
+}
+
+void ce_disable(NRF24_t *device){
+    sleep_us(10);
+    gpio_put(device->ce_pin, 0);
+}
+
+void nrf24_WriteReg(NRF24_t *device, uint8_t reg, uint8_t data){
     uint8_t buf[2];
-    buf[0] = (W_REGISTER | reg);
-    buf[1] = value;
-    csn_select();
-    spi_write_blocking(spi, buf, 2);
-    csn_deselect();
+    buf[0] = reg|1<<5;
+    buf[1] = data;
+
+    cs_select(device);
+
+    spi_write_blocking(device, buf, 2);
+
+    cs_deselect(device);
+
 }
 
-uint8_t nrf24_read_reg(spi_inst_t *spi, uint8_t reg){
-    uint8_t cmd = (R_REGISTER | reg);
-    uint8_t value;
-    csn_select();
-    spi_write_blocking(spi, &cmd, 1);
-    spi_read_blocking(spi, 0x00, &value, 1);
-    csn_deselect();
-    return value;
+void nrf24_WriteMultiReg(NRF24_t *device, uint8_t reg, uint8_t *data, int size){
+    uint8_t buf[2];
+    buf[0] = reg|1<<5;
+
+    cs_select(device);
+
+    spi_write_blocking(device, buf, 2);
+    spi_write_blocking(device, data, size);
+
+    cs_deselect(device);
 }
 
-void nrf24_init(spi_inst_t *spi, uint32_t baudrate){
+uint8_t nrf24_ReadReg (NRF24_t *device, uint8_t reg){
+    uint8_t data = 0;
+    cs_select(device);
 
-    spi_init(spi, baudrate);
+    spi_write_blocking(device->spi, &reg, 1);
+    spi_read_blocking(device->spi, 0x00, &data, 1);
 
-    spi_set_format(spi, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+    cs_deselect(device);
 
-    gpio_set_function(SPI_SCK_PIN, GPIO_FUNC_SPI);
-    gpio_set_function(SPI_RX_PIN, GPIO_FUNC_SPI);
-    gpio_set_function(SPI_TX_PIN, GPIO_FUNC_SPI);
-    // gpio_set_function(SPI_CSN_PIN, GPIO_FUNC_SPI);
-
-    gpio_init(SPI_CSN_PIN);
-    gpio_init(NRF24_CE_PIN);
-
-    gpio_set_dir(SPI_CSN_PIN, GPIO_OUT);
-    gpio_set_dir(NRF24_CE_PIN, GPIO_OUT);
-
-    gpio_put(SPI_CSN_PIN, 1);
-
-
-    nrf24_write_reg(spi, SETUP_AW, 0x03); // 5 bytes address
+    return data;
 }
 
-void nrf24_init_tx(spi_inst_t *spi){
-    gpio_put(NRF24_CE_PIN, 0);
-    
-    nrf24_write_reg(spi, 0x00, 0x0E);
-
-    nrf24_write_reg(spi, RX_PW_P0, 32);
-
-    uint8_t addr[] = {0xE7, 0xE7, 0xE7, 0xE7, 0xE7};
-
-    static const uint8_t cmd_tx = W_REGISTER | TX_ADDR;
-
-    csn_select();
-    spi_write_blocking(spi, &cmd_tx, 1);
-    spi_write_blocking(spi, addr, 5);
-    csn_deselect();
-
-    static const uint8_t cmd_rx = W_REGISTER | RX_ADDR_P0;
-
-    csn_select();
-    spi_write_blocking(spi, &cmd_rx, 1);
-    spi_write_blocking(spi, addr, 5);
-    csn_deselect();
-
-    nrf24_write_reg(spi, 0x01, 0x3F);
-    nrf24_write_reg(spi, 0x02, 0x01);
-    nrf24_write_reg(spi, 0x03, 0x03);
-    nrf24_write_reg(spi, 0x04, 0x04);
-    nrf24_write_reg(spi, 0x05, 0x1E);
-    nrf24_write_reg(spi, 0x06, 0x0E);
-    sleep_ms(5);
+void nrf24_ReadMultiReg(NRF24_t *device, uint8_t reg, uint8_t *data, int size){
+    cs_select(device);
+    spi_write_blocking(device->spi, &reg, 1);
+    spi_read_blocking(device->spi, 0, data, size);
+    cs_deselect(device);
 }
 
-void nrf24_init_rx(spi_inst_t *spi){
-    gpio_put(NRF24_CE_PIN, 0);
-    nrf24_write_reg(spi, 0x00, 0x0F);
-    nrf24_write_reg(spi, 0x01, 0x3F);
-    nrf24_write_reg(spi, 0x02, 0x01);
-    nrf24_write_reg(spi, 0x03, 0x03);
-    nrf24_write_reg(spi, 0x04, 0x04);
-    nrf24_write_reg(spi, 0x05, 0x1E);
-    nrf24_write_reg(spi, 0x06, 0x07);
-    sleep_ms(5);
-    gpio_put(NRF24_CE_PIN, 1);
+void nrfSendCmd(NRF24_t *device, uint8_t cmd){
+    cs_select(device);
+
+    spi_write_blocking(device->spi, &cmd, 1);
+
+    cs_deselect(device);
 }
 
-void nrf24_write_payload(spi_inst_t *spi, uint8_t *data, int len){
-    uint8_t cmd = W_TX_PAYLOAD;
-    csn_select();
-    spi_write_blocking(spi, &cmd, 1);
-    spi_write_blocking(spi, data, len);
-    csn_deselect();
+void NRF24_init(NRF24_t *device){
+
+    spi_init(device->spi, 1000 * 1000);
+
+    gpio_init(device->ce_pin);
+    gpio_init(device->cs_pin);
+
+    gpio_set_dir(device->ce_pin, 1);
+    gpio_set_dir(device->cs_pin, 1);
+
+    gpio_set_function(device->miso_pin, GPIO_FUNC_SPI);
+    gpio_set_function(device->mosi_pin, GPIO_FUNC_SPI);
+    gpio_set_function(device->sck_pin,  GPIO_FUNC_SPI);
+
+    ce_disable(device);
+
+    nrf24_WriteReg(device, CONFIG,     0   );
+    nrf24_WriteReg(device, EN_AA,      0   );
+    nrf24_WriteReg(device, EN_RXADDR,  0   );
+    nrf24_WriteReg(device, SETUP_AW,   0x03);
+    nrf24_WriteReg(device, SETUP_RETR, 0   );
+    nrf24_WriteReg(device, RF_CH,      0   );
+    nrf24_WriteReg(device, RF_SETUP,   0x0E);
+
+    ce_enable(device);
 }
 
-void nrf24_read_payload(spi_inst_t *spi, uint8_t *data, int len){
-    uint8_t cmd = R_RX_PAYLOAD;
-    csn_select();
-    spi_write_blocking(spi, &cmd, 1);
-    spi_read_blocking(spi, 0x00, data, len);
-    csn_deselect();
+void NRF24_txMode(NRF24_t *device, uint8_t *addr, uint16_t channel){
+    ce_disable(device);
+
+    nrf24_WriteReg(device, RF_CH, channel);
+    nrf24_WriteMultiReg(device, TX_ADDR, addr, 5);
+    uint8_t config = nrf24_ReadReg(device, CONFIG);
+    config = config | (1 << 1);
+    nrf24_WriteReg(device, CONFIG, config);
+
+
+    ce_enable(device);
 }
 
-void send_msg(spi_inst_t *spi, char *msg){
+uint8_t NRF24_transmit(NRF24_t *device, uint8_t *data){
+    uint8_t cmdToSend = 0;
+   
+    cs_select(device);
 
-    nrf24_write_reg(spi, STATUS, (1 << 5) | (1 << 4) | (1 << 6));
+    cmdToSend = W_TX_PAYLOAD;
+    // uint8_t cmdsent = spi_write_blocking(NRF24_SPI, &cmdToSend, 1);
+    // sleep_ms(5);
+    spi_write_blocking(device->spi, &cmdToSend, 1);
+    // sleep_ms(5);
+    // uint8_t datasent = spi_write_blocking(NRF24_SPI, data, 32);
+    spi_write_blocking(device->spi, data, 1); //tu było 32
+    // sleep_ms(5);
 
-    gpio_put(NRF24_CE_PIN, 0);
+    cs_deselect(device);
 
-    //5 -> TX_DS, 4 -> MAX_RT
-    nrf24_write_reg(spi, STATUS, (1 << 5) | (1 << 4));
+    sleep_us(300);
 
-    nrf24_write_payload(spi, (uint8_t*)msg, strlen(msg));
+    // printf("BYTES WRITTEN FOR CMD: %d\n", cmdsent);
+    // printf("BYTES WRITTEN FOR DATA: %d\n", datasent);
 
-    gpio_put(NRF24_CE_PIN, 1);
-    sleep_us(20);
-    gpio_put(NRF24_CE_PIN, 0);
-
-    uint8_t status = nrf24_read_reg(spi, STATUS);
-    printf("Status po próbie nadania: 0x%X\n", status);
-
-    uint8_t observe_tx = nrf24_read_reg(spi, OBSERVE_TX);
-    printf("OBSERVE_TX po próbie nadania: 0x%X\n", observe_tx);
-
-    printf("Sent message: %s\n", msg);
-}
-
-void receive_msg(spi_inst_t *spi){
-    uint8_t status = nrf24_read_reg(spi, STATUS);
-    if(status & (1 << 6)){
-        uint8_t rxbuf[32];
-        nrf24_read_payload(spi, rxbuf, 32);
-        printf("Received: %s\n", rxbuf);
-        nrf24_write_reg(spi, STATUS, (1 << 6));
+    uint8_t fifostatus = nrf24_ReadReg(device, FIFO_STATUS);
+    printf("FIFOSTATUS: %x\n", fifostatus);
+    if((fifostatus & (1 << 4)) && (!(fifostatus&(1 << 3)))){
+        cmdToSend = FLUSH_TX;
+        nrfSendCmd(device, cmdToSend);
+        return 1;
     }
+
+    return 0;
+}
+
+void NRF24_rxMode(NRF24_t *device, uint8_t *addr, uint16_t channel){
+    ce_disable(device);
+
+    nrf24_WriteReg(device, RF_CH, channel);
+    uint8_t en_rxaddr = nrf24_ReadReg(device, EN_RXADDR);
+    en_rxaddr = en_rxaddr | (1 << 1);
+    nrf24_WriteReg(device, EN_RXADDR, en_rxaddr);
+
+    nrf24_WriteMultiReg(device, RX_ADDR_P1, addr, 5);
+
+    nrf24_WriteReg(device, RX_PW_P1, 1); // tu było 32
+
+    uint8_t config = nrf24_ReadReg(device, CONFIG);
+    config = config | (1 << 1) | (1 << 0);
+    nrf24_WriteReg(device, CONFIG, config);
+
+
+    ce_enable(device);
+}
+
+uint8_t isDataAvaliable(NRF24_t *device, int pipenum){
+    uint8_t status = nrf24_ReadReg(device, STATUS);
+    if((status&(1<<6)) && (status & (pipenum << 1))){
+        nrf24_WriteReg(device, STATUS, (1<<6));
+        return 1;
+    }
+    return 0;
+}
+
+void NRF24_Receive(NRF24_t *device, uint8_t *data){
+    uint8_t cmdtosend = 0;
+    cs_select(device);
+    cmdtosend = R_RX_PAYLOAD;
+    spi_write_blocking(device->spi, &cmdtosend, 1);
+    spi_read_blocking(device->spi, 0, data, 1); //tu było 32
+
+    cs_deselect(device);
+
+    sleep_us(300);
+
+    cmdtosend = FLUSH_RX;
+    nrfSendCmd(device, cmdtosend);
 }
