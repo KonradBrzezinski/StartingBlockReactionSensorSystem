@@ -2,7 +2,7 @@
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "C:/Program Files (x86)/accelerometer")
+  set(CMAKE_INSTALL_PREFIX "C:/Program Files (x86)/NRF24_tests")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -12,7 +12,7 @@ if(NOT DEFINED CMAKE_INSTALL_CONFIG_NAME)
     string(REGEX REPLACE "^[^A-Za-z0-9_]+" ""
            CMAKE_INSTALL_CONFIG_NAME "${BUILD_TYPE}")
   else()
-    set(CMAKE_INSTALL_CONFIG_NAME "Release")
+    set(CMAKE_INSTALL_CONFIG_NAME "Debug")
   endif()
   message(STATUS "Install configuration: \"${CMAKE_INSTALL_CONFIG_NAME}\"")
 endif()
@@ -39,22 +39,22 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/komputer/Desktop/inz/StartingBlockReactionSensorSystem/build/pico-sdk/tools/cmake_install.cmake")
+  include("C:/Users/komputer/Desktop/Inz/StartingBlockReactionSensorSystem/build/pico-sdk/tools/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/komputer/Desktop/inz/StartingBlockReactionSensorSystem/build/pico-sdk/src/cmake_install.cmake")
+  include("C:/Users/komputer/Desktop/Inz/StartingBlockReactionSensorSystem/build/pico-sdk/src/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/komputer/Desktop/inz/StartingBlockReactionSensorSystem/build/pico-sdk/docs/cmake_install.cmake")
+  include("C:/Users/komputer/Desktop/Inz/StartingBlockReactionSensorSystem/build/pico-sdk/docs/cmake_install.cmake")
 endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
 if(CMAKE_INSTALL_LOCAL_ONLY)
-  file(WRITE "C:/Users/komputer/Desktop/inz/StartingBlockReactionSensorSystem/build/pico-sdk/install_local_manifest.txt"
+  file(WRITE "C:/Users/komputer/Desktop/Inz/StartingBlockReactionSensorSystem/build/pico-sdk/install_local_manifest.txt"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
 endif()

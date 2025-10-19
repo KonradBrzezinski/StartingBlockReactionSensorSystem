@@ -78,9 +78,13 @@ void NRF24_init(NRF24_t *device){
 
     gpio_init(device->ce_pin);
     gpio_init(device->cs_pin);
+    gpio_init(device->irq_pin);
 
     gpio_set_dir(device->ce_pin, 1);
     gpio_set_dir(device->cs_pin, 1);
+    gpio_set_dir(device->irq_pin, 0);
+
+    gpio_pull_up(device->irq_pin);
 
     gpio_set_function(device->miso_pin, GPIO_FUNC_SPI);
     gpio_set_function(device->mosi_pin, GPIO_FUNC_SPI);

@@ -31,6 +31,8 @@ typedef struct NRF24_t{
     int mosi_pin;
     int sck_pin;
 
+    int irq_pin;
+
     spi_inst_t *spi;
 
     int channel;

@@ -28,7 +28,7 @@ set(PICO_BOARD pico2_w CACHE STRING "Board type")
 # Pull in Raspberry Pi Pico SDK (must be before project)
 include(pico_sdk_import.cmake)
 
-project(accelerometer C CXX ASM)
+project(StartingBlockReactionSensorSystem C CXX ASM)
 
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
@@ -39,27 +39,27 @@ if (NOT PICO_CYW43_SUPPORTED)
     message("Only building blink_any for non W boards as PICO_CYW43_SUPPORTED is not set")
 endif()
 
-add_executable(accelerometer
-    accelerometer.c
-    nrf24l01.c
+add_executable(StartingBlockReactionSensorSystem NRF24_tests.c
     )
 
+target_include_directories(StartingBlockReactionSensorSystem PRIVATE ${CMAKE_CURRENT_LIST_DIR})
+
 # pull in common dependencies
-target_link_libraries(accelerometer 
+target_link_libraries(StartingBlockReactionSensorSystem 
     pico_stdlib
     hardware_i2c
     hardware_gpio
     hardware_spi
+    hardware_irq
 )
 
 if (PICO_CYW43_SUPPORTED)
-    target_link_libraries(accelerometer 
+    target_link_libraries(StartingBlockReactionSensorSystem 
         pico_cyw43_arch_none
-        pico_stdlib
     )
 endif()
 
 # create map/bin/hex file etc.
-pico_add_extra_outputs(accelerometer)
+pico_add_extra_outputs(StartingBlockReactionSensorSystem)
 
 # add url via pico_set_program_url

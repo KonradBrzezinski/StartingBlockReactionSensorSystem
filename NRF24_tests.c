@@ -3,6 +3,7 @@
 #include "pico/stdlib.h"
 #include "hardware/spi.h"
 #include "hardware/gpio.h"
+#include "hardware/irq.h"
 // #include "pico/cyw43_arch.h"
 #include "time.h"
 #include "includes/NRF24_tests.h"
@@ -38,6 +39,12 @@ int64_t turn_off(alarm_id_t id, void *user_data){
     return 0;
 }
 
+void irq_callback(uint gpio, uint32_t events){
+    if(gpio == nrf24.irq_pin && (events & GPIO_IRQ_EDGE_RISE)){
+        
+    }
+}
+
 void check_btn(uint8_t event){
     if(event & 0x01){
         if(!is_fired){
@@ -57,9 +64,10 @@ void check_btn(uint8_t event){
 
 ADXL345_t adxl345;
 
+NRF24_t nrf24;
+
 int main()
 {
-
     stdio_init_all();
 
     // NRF24_init();
@@ -70,12 +78,18 @@ int main()
     //rx
     // NRF24_rxMode(RxAddr, 10);
 
-    // hx711_init(&hx, 15, 14);
+    nrf24.spi = spi0;
+    nrf24.ce_pin = 20;
+    nrf24.cs_pin = 17;
+    nrf24.miso_pin = 16;
+    nrf24.mosi_pin = 19;
+    nrf24.sck_pin = 18;
 
-    // hx711_tare(&hx, 20);
-    // hx711_set_scale(&hx, 0.00123f); // <- ustaw po
 
-    ADXL345_init();
+
+    // ADXL345_init(&adxl345);
+
+    NRF24_init(&nrf24);
 
     gpio_init(4);
     gpio_set_dir(4, 0);
@@ -89,7 +103,7 @@ int main()
     int16_t tab[3600];
     float tab_f[80];
     while (true) {
-        //tx
+        // tx
         // if(NRF24_transmit(TxData) == 1){
         //     gpio_put(4, led_status);
         //     toggle_led();
@@ -102,79 +116,47 @@ int main()
         //     check_btn(RxData);
         // }
 
-        if(!gpio_get(4)){
-            check_btn(0x01);
-            pomiar_aktywny = true;
-            t_start_loop_us = time_us_64();
-            counter = 0;
-        }
+        //RX
+
+
+
+        // if(!gpio_get(4)){
+        //     check_btn(0x01);
+        //     pomiar_aktywny = true;
+        //     t_start_loop_us = time_us_64();
+        //     counter = 0;
+        // }
 
         // --- CZĘŚĆ ADXL345: Pomiar Czasu Reakcji ---
-        if (pomiar_aktywny) {
-            // add_alarm_in_ms(100, turn_off, NULL, false);
-            t_start_us = time_us_64();
+        // if (pomiar_aktywny) {
+        //     // add_alarm_in_ms(100, turn_off, NULL, false);
+        //     t_start_us = time_us_64();
 
-            // int32_t raw = hx711_read_raw(&hx);
-            int16_t raw_x = ADXL345_read_X_g();
-            // float F = (raw - hx.offset) * hx.scale;
+        //     // int32_t raw = hx711_read_raw(&hx);
+        //     ADXL345_read_X_g(&adxl345);
+        //     // float F = (raw - hx.offset) * hx.scale;
 
-            t_end_us = time_us_64();
+        //     t_end_us = time_us_64();
 
-            if(t_end_us - t_start_us < (1000000 / 3600)){
-                sleep_us((1000000 / 3600) - (t_end_us - t_start_us));
-            }
+        //     if(t_end_us - t_start_us < (1000000 / 3600)){
+        //         sleep_us((1000000 / 3600) - (t_end_us - t_start_us));
+        //     }
 
-            // tab_f[counter] = abs(F);
-            tab[counter++] = abs(raw_x);
+        //     // tab_f[counter] = abs(F);
+        //     tab[counter++] = abs(adxl345.data[0]);
             
-            if(counter == 3600){
-                pomiar_aktywny = false;
-                t_check_us = time_us_64();
+        //     if(counter == 3600){
+        //         pomiar_aktywny = false;
+        //         t_check_us = time_us_64();
                 
-                for(uint16_t i = 0; i < 3600; i++){
-                    // printf("N: %d X: %d\n", i, tab[i]);
-                    printf("%d %d\n", i, tab[i]);
-                }
-                is_fired = false;
-                printf("Czas pomiaru 3600 próbek: %llu us\n", t_check_us - t_start_loop_us);
-            }
-            
-            // if(counter < 1000){
-            //     tab[counter++] = raw_x;
-            // }else{
-            //     sleep_ms(2000);
-            //     for(int i = 0; i < 1000; i++){
-            //         printf("N: %d X: %d\n", i, tab[i]);
-            //     }
-            //     pomiar_aktywny = false;
-            //     is_fired = false;
-            //     t_start_us = 0;
-            //     sleep_ms(2000);
-            // }
-            // Porównanie z progiem (wartość bezwzględna)
-            /*
-            if (abs(raw_x) > THRESHOLD_RAW) {
-                uint64_t t_ruch_us = time_us_64();
-                uint64_t RT_us = t_ruch_us - t_start_us;
-                float RT_ms = (float)RT_us / 1000.0f;
-                
-                printf("\n====================================");
-                printf("           RUCH WYKRYTY!          ");
-                printf("====================================\n");
-                printf("Raw X: %d (Próg: > %d)\n", raw_x, THRESHOLD_RAW);
-                printf("Czas Startu: %llu us\n", t_start_us);
-                printf("Czas Ruchu:  %llu us\n", t_ruch_us);
-                printf("--- Czas Reakcji (RT): %.3f ms ---\n", RT_ms);
-                printf("====================================\n");
-                */
-                // Reset
-                // pomiar_aktywny = false;
-                // is_fired = false;
-                // t_start_us = 0;
-                
-                // Opóźnienie, aby nie mierzyć od razu po ruchu
-                // sleep_ms(2000); 
-            // }
-        }
+        //         for(uint16_t i = 0; i < 3600; i++){
+        //             // printf("N: %d X: %d\n", i, tab[i]);
+        //             printf("%d %d\n", i, tab[i]);
+        //         }
+        //         is_fired = false;
+        //         printf("Czas pomiaru 3600 próbek: %llu us\n", t_check_us - t_start_loop_us);
+        //     }
+        // }
     }
+    return 0;
 }
